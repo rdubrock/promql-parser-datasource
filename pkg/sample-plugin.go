@@ -2,7 +2,7 @@ package main
 
 import (
 	"context"
-	"go/parser"
+	"fmt"
 	"math/rand"
 	"net/http"
 
@@ -70,21 +70,37 @@ func (td *SampleDatasource) query(ctx context.Context, query backend.DataQuery) 
 	// Unmarshal the json into our queryModel
 	// var qm queryModel
 
+	log.DefaultLogger.Info(string(query.JSON))
+
 	response := backend.DataResponse{}
 
-	var parsed, error = parser.ParseExpr("a_metric_name{label='value', label2='value2'")
-	if error != nil {
-		response.Error = error
+	var parsed, parseError = parser.ParseExpr("a_metric_name{label='value', label2='value2'}")
+
+	if parseError != nil {
+		log.DefaultLogger.Error("parsing borked %s", parseError)
+		// response.Error = error
+		// return response
 		return response
 	}
 
+	log.DefaultLogger.Warn(parsed.String())
+	log.DefaultLogger.Info(fmt.Sprintf("%T %#v", parsed, parsed))
+	// implement the Visitor interface, and pass it to Walk
+	// The visitor will implement the type switch in order to serialize to JSON
+	// log.DefaultLogger.Warn(string(parsed.Type()))
+	// switch v := parsed.(type) {
+	// case *parser.VectorSelector:
+	//     // do something with v, which has type *parser.VectorSelector here
+	// case ...:
+	// }
 	frame := data.NewFrame("response")
 
-	frame.Fields = append(frame.Fields,
-		data.NewField(("AST"), parsed.End().IsValid(), []string),
-	)
+	// frame.Fields = append(frame.Fields,
+	// 	data.NewField(("AST"), parsed.End().IsValid(), []string),
+	// )
 
 	response.Frames = append(response.Frames, frame)
+	return response
 
 	// response.Error = json.Unmarshal(query.JSON, &qm)
 	// if response.Error != nil {
