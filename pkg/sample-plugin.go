@@ -68,7 +68,7 @@ type queryModel struct {
 
 func (td *SampleDatasource) query(ctx context.Context, query backend.DataQuery) backend.DataResponse {
 	// Unmarshal the json into our queryModel
-	var qm queryModel
+	// var qm queryModel
 
 	response := backend.DataResponse{}
 
