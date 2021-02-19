@@ -66,6 +66,41 @@ type queryModel struct {
 	Format string `json:"format"`
 }
 
+type visitor parser.Visitor
+
+type visited struct {
+	visitor visitor
+}
+
+func (vis visited) Visit(node parser.Node, path []parser.Node) (w parser.Visitor, err error) {
+	log.DefaultLogger.Info(fmt.Sprintf("%T %#v", node, node))
+	switch node.(type) {
+	case *parser.BinaryExpr:
+		log.DefaultLogger.Info("BINARY EXPR")
+	case *parser.AggregateExpr:
+		log.DefaultLogger.Info("AGGREGATE EXPR")
+	case *parser.NumberLiteral:
+		log.DefaultLogger.Info("NUMBER LITERAL")
+	case *parser.StringLiteral:
+		log.DefaultLogger.Info("STRING LITERAL")
+	case *parser.EvalStmt:
+		log.DefaultLogger.Info("EVAL STMT")
+	case *parser.Call:
+		log.DefaultLogger.Info("EVAL STMT")
+	case *parser.MatrixSelector:
+		log.DefaultLogger.Info("MATRIX SELECTOR")
+	case *parser.ParenExpr:
+		log.DefaultLogger.Info("PAREN EXPR")
+	case *parser.SubqueryExpr:
+		log.DefaultLogger.Info("SUBQUERY EXPR")
+	case *parser.UnaryExpr:
+		log.DefaultLogger.Info("UNARY EXPR")
+	case *parser.VectorSelector:
+		log.DefaultLogger.Info("VECTOR SELECTOR")
+	}
+	return vis, err
+}
+
 func (td *SampleDatasource) query(ctx context.Context, query backend.DataQuery) backend.DataResponse {
 	// Unmarshal the json into our queryModel
 	// var qm queryModel
@@ -75,6 +110,10 @@ func (td *SampleDatasource) query(ctx context.Context, query backend.DataQuery) 
 	response := backend.DataResponse{}
 
 	var parsed, parseError = parser.ParseExpr("a_metric_name{label='value', label2='value2'}")
+
+	var visited visited
+
+	parser.Walk(visited, parsed, []parser.Node{})
 
 	if parseError != nil {
 		log.DefaultLogger.Error("parsing borked %s", parseError)
